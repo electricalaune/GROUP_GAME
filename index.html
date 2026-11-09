@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>みんなのグループ育成</title>
+<style>
+:root{color-scheme:light dark;--bg:#e6efe8;--sf:#fff;--tx:#1b2a21;--mu:#66786d;--ac:#1fae6b;--on:#fff;--bd:#d3e0d7;--bub:#f0f5f1;--me:#b8efc9;--warn:#e5484d;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#111a15;--sf:#1a2620;--tx:#e6f0ea;--mu:#8fa398;--ac:#2fc882;--on:#06210f;--bd:#2a3b32;--bub:#223229;--me:#1e5a3b}}
+:root[data-theme="dark"]{--bg:#111a15;--sf:#1a2620;--tx:#e6f0ea;--mu:#8fa398;--ac:#2fc882;--on:#06210f;--bd:#2a3b32;--bub:#223229;--me:#1e5a3b}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--tx);font-family:"Hiragino Maru Gothic ProN","Hiragino Sans","Yu Gothic",Meiryo,sans-serif;min-height:100%}
+main{max-width:520px;margin:0 auto;padding:12px;display:grid;gap:10px}
+.card{background:var(--sf);border:1px solid var(--bd);border-radius:16px;padding:12px}
+.head{display:flex;gap:12px;align-items:center}
+.ico{font-size:40px;width:64px;height:64px;border-radius:20px;background:var(--bub);display:grid;place-items:center;flex:none}
+.head h1{font-size:17px;margin:0 0 2px}
+.cnt{font-size:30px;font-weight:800;line-height:1.1}
+.sub{font-size:12px;color:var(--mu)}
+.bar{height:8px;border-radius:4px;background:var(--bub);overflow:hidden;margin-top:8px}
+.bar i{display:block;height:100%;width:0;background:var(--ac);transition:width .2s}
+.stats{display:flex;justify-content:space-between;font-size:13px;margin-top:8px}
+#chat{position:relative;height:190px;overflow:hidden;display:flex;flex-direction:column;justify-content:flex-end;gap:6px;padding:10px}
+.b{max-width:80%;padding:6px 10px;border-radius:14px;background:var(--bub);font-size:14px;animation:pop .15s}
+.b small{display:block;font-size:10px;color:var(--mu)}
+.b.me{align-self:flex-end;background:var(--me)}
+@keyframes pop{from{transform:scale(.9);opacity:0}}
+#troll{position:absolute;right:8px;top:8px;border:0;border-radius:12px;background:var(--warn);color:#fff;font-weight:700;font-size:13px;font-family:inherit;padding:8px 12px;display:none;animation:shake .3s infinite alternate}
+@keyframes shake{to{transform:rotate(4deg)}}
+.acts{display:grid;grid-template-columns:1fr 1fr;gap:8px}.act{border:0;border-radius:18px;padding:16px 8px;background:var(--ac);color:var(--on);font-weight:800;font-size:17px;font-family:inherit;position:relative;touch-action:manipulation;cursor:pointer}.act.alt{background:var(--sf);color:var(--tx);border:2px solid var(--ac)}.b.st span{font-size:34px;line-height:1.1}
+.act:active{transform:scale(.97)}
+.fl{position:absolute;pointer-events:none;font-weight:800;animation:up .8s forwards}
+@keyframes up{to{transform:translateY(-50px);opacity:0}}
+.row{display:flex;align-items:center;gap:10px;width:100%;text-align:left;background:var(--sf);color:var(--tx);border:1px solid var(--bd);border-radius:12px;padding:10px;font:inherit;cursor:pointer;margin-bottom:6px}
+.row:disabled{opacity:.45;cursor:default}
+.row .e{font-size:24px}
+.row .t{flex:1;font-size:14px;font-weight:700}
+.row .t small{display:block;font-weight:400;color:var(--mu);font-size:11px}
+.row .c{font-size:13px;font-weight:700;color:var(--ac);white-space:nowrap}
+h2{font-size:14px;margin:0 0 8px}
+#toast{position:fixed;left:50%;top:calc(env(safe-area-inset-top,0px) + 12px);transform:translateX(-50%);background:var(--tx);color:var(--bg);padding:10px 16px;border-radius:14px;font-size:14px;font-weight:700;opacity:0;transition:opacity .3s;pointer-events:none;z-index:9;max-width:90%;text-align:center}
+#toast.on{opacity:1}
+.rs{background:none;border:0;color:var(--mu);font:inherit;font-size:11px;cursor:pointer;justify-self:center}
+</style>
+</head>
+<body>
+<main>
+<div class="card">
+  <div class="head"><div class="ico" id="ico">🤫</div>
+    <div><h1 id="name">ひそひそ部屋</h1><div class="cnt">👥 <span id="m">1</span>人</div></div></div>
+  <div class="bar"><i id="pg"></i></div>
+  <div class="sub" id="next" style="margin-top:4px"></div>
+  <div class="stats"><span>💚 いいね <b id="p">0</b></span><span class="sub">+<span id="pps">0</span>/秒・メンバー +<span id="mps">0</span>/秒</span></div>
+</div>
+
+<div class="card" id="chat"><button id="troll">👿 荒らし出現！タップで退場</button></div>
+
+<div class="acts"><button class="act" id="stamp">😆 スタンプを送る</button><button class="act alt" id="text">💬 メッセージを送る</button></div>
+
+<div class="card"><h2>メンバーを増やす</h2><div id="shop"></div></div>
+<button class="rs" id="rs">はじめからやり直す</button>
+</main>
+<div id="toast"></div>
+
+<script>
+const $=s=>document.querySelector(s);
+const T=[[1,"ひそひそ部屋","🤫"],[5,"仲良し5人組","😊"],[20,"クラスのグループ","📚"],[50,"サークル連絡網","🎪"],[150,"町内会チャット","🏘️"],[500,"上限突破の伝説グループ","🚀"],[2000,"街ひとつ分の大所帯","🌆"],[10000,"都道府県レベル","🗾"],[100000,"日本中が参加","🎌"],[1e6,"地球規模グループ","🌏"],[1e7,"宇宙人も参加中","👽"]];
+const IT=[
+{n:"招待リンクをシェア",e:"🔗",c:30,r:0.2,d:"自動でメンバーが増える"},
+{n:"面白Botを導入",e:"🤖",c:300,r:2,d:"ボケ続けて人を呼ぶ"},
+{n:"通知ONキャンペーン",e:"🔔",c:3000,r:15,d:"全員に通知が届く"},
+{n:"インフルエンサー参戦",e:"🌟",c:30000,r:120,d:"フォロワーが流れ込む"},
+{n:"他グループと合併",e:"🤝",c:300000,r:900,d:"丸ごとお引越し"},
+{n:"宇宙人をスカウト",e:"👽",c:4e6,r:8000,d:"銀河から参加者が来る"}];
+const NM=["たろう","はなこ","ゆうき","みさき","けんじ","さくら","りく","あおい","そうた","ひなた","まりこ","だいち"];
+const TX=["草","おはよう☀️","今日の晩ごはん何？","それな","ちょ、待って笑","既読つけたよ〜","誰かゲームやろ","スタンプ連打しとく","ただいま〜","天才か","えっ、人増えてない？","さっき電車止まってた","お疲れさま！","わかる、めっちゃわかる","ここ居心地いいわ","新入りです、よろしく！"];
+const STK=["😆","🥳","👍","😂","🙏","❤️","🎉","🐶","🐱","🍙","✨","🙌"];
+const MY=["みんな聞いて〜","今日も盛り上がろう！","おはよう！","最近どう？","何か面白い話ない？","おつかれさま〜"];
+const POOL=[null,
+["今日の宿題やった？","このグループ名変えない？","写真送るね📷","ねえ聞いてよ〜","通話しよ！"],
+["あ、新しい子入ってきた！","担任の話長すぎ","明日テストじゃん…","席替えどうなった？","文化祭の準備いつやる？"],
+["次の集まりの日程決めよ","幹事やります！","会費いくら？","投票つくったよ","ノート回してください"],
+["回覧板まわってきた？","今週の掃除当番だれ？","お祭りの屋台出す人募集","ゴミ出しの曜日変わったって","町内会長がスタンプ連打してる"],
+["ここまで増えると誰が誰かわからんw","管理人さーん！","サブグループ作ろうよ","ニュースで見たよこのグループ","もう上限どころじゃない"],
+["隣町からも参加者来てる！","自己紹介スレ長すぎて読めない","市長が見てるらしい","公式グッズ作ろうぜ","全員の返信に既読つけるの大変"],
+["北海道から参加！","沖縄は今日も暑いよ☀️","県代表を決めよう","ご当地自慢大会やろう","全国ツアー開催希望"],
+["総理もこのグループにいるらしい","テレビ局から取材依頼来た","海外の友達も呼んだよ🌍","日本中で同時におはよう！","通知が止まらないw"],
+["地球の裏側は夜だよ","時差でずっと誰か起きてる","国連で話題になってた","月面基地からも参加してます🌕","世界共通スタンプ作ろう"],
+["こちら火星、感度良好👽","銀河標準時で挨拶しますね","宇宙人です。ここは平和です","光年単位で既読が遅れます","UFOで集まるオフ会しよう🛸"]];
+const NX=[null,["クラスメイト"],["先生"],["幹事"],["町内会長","商店街の店長"],["管理人"],["市長"],["知事"],["アナウンサー"],["国連の人"],["宇宙人"]];
+const KEY="grp-game-v1";
+let S={m:1,p:0,lv:IT.map(()=>0),tap:0,inv:0,tier:0,at:Date.now()};
+try{const j=localStorage.getItem(KEY);if(j)Object.assign(S,JSON.parse(j))}catch(e){}
+while(S.lv.length<IT.length)S.lv.push(0);
+const fmt=n=>{n=Math.floor(n);return n>=1e8?(n/1e8).toFixed(2)+"億":n>=1e4?(n/1e4).toFixed(1)+"万":n.toLocaleString("ja-JP")};
+const cost=i=>Math.ceil(IT[i].c*Math.pow(1.15,S.lv[i]));
+const tapC=()=>Math.ceil(50*Math.pow(1.6,S.tap));
+const invC=()=>Math.ceil(10*Math.pow(1.1,S.inv));
+const mps=()=>IT.reduce((a,x,i)=>a+x.r*S.lv[i],0);
+const pps=()=>Math.floor(S.m)*0.5;
+const tapG=()=>1+S.tap*2+Math.floor(S.m)*0.05;
+const rnd=a=>a[Math.floor(Math.random()*a.length)];
+const toast=t=>{const e=$("#toast");e.textContent=t;e.classList.add("on");clearTimeout(toast.t);toast.t=setTimeout(()=>e.classList.remove("on"),2600)};
+
+/* shop */
+const shop=$("#shop");
+function row(id,e,t,d){const b=document.createElement("button");b.className="row";b.id=id;b.innerHTML='<span class="e">'+e+'</span><span class="t">'+t+'<small>'+d+'</small></span><span class="c"></span>';shop.appendChild(b)}
+row("inv","🙋","友達を招待","手動でメンバー +1");
+row("tp","✨","スタンプ連打強化","タップのいいねが増える");
+IT.forEach((x,i)=>row("i"+i,x.e,x.n,x.d));
+shop.addEventListener("click",ev=>{
+  const b=ev.target.closest(".row");if(!b||b.disabled)return;
+  if(b.id==="inv"&&S.p>=invC()){S.p-=invC();S.inv++;S.m+=1}
+  else if(b.id==="tp"&&S.p>=tapC()){S.p-=tapC();S.tap++}
+  else if(b.id[0]==="i"&&b.id!=="inv"){const i=+b.id.slice(1);if(S.p>=cost(i)){S.p-=cost(i);S.lv[i]++}}
+  ui();
+});
+
+/* chat */
+function msg(name,text,me,big){
+  const c=$("#chat"),d=document.createElement("div");d.className="b"+(me?" me":"")+(big?" st":"");
+  d.innerHTML="<small></small><span></span>";d.children[0].textContent=name;d.children[1].textContent=text;
+  c.appendChild(d);while(c.querySelectorAll(".b").length>5)c.querySelector(".b").remove();
+}
+
+/* tap */
+function send(btn,ev,stamp){
+  const g=tapG();S.p+=g;
+  if(stamp)msg("あなた",rnd(STK),true,true);
+  else{let p=MY.slice();for(let i=1;i<=S.tier;i++)p=p.concat(POOL[i]);msg("あなた",rnd(p),true)}
+  const f=document.createElement("span");f.className="fl";f.textContent="+"+fmt(Math.max(1,g));
+  f.style.cssText="left:"+(ev.offsetX||60)+"px;top:"+(ev.offsetY||10)+"px;color:var(--mu)";
+  btn.appendChild(f);setTimeout(()=>f.remove(),800);ui();
+}
+$("#stamp").addEventListener("click",ev=>send(ev.currentTarget,ev,true));
+$("#text").addEventListener("click",ev=>send(ev.currentTarget,ev,false));
+
+/* troll */
+const tr=$("#troll");let trT;
+function spawn(){
+  tr.style.display="block";msg("荒らし👿",rnd(["このグループつまんね〜","全員ブロックしてやる","広告貼りまくるぞw","ここ荒らします"]));
+  trT=setTimeout(()=>{tr.style.display="none";const cur=Math.floor(S.m),l=cur>1?Math.min(cur-1,Math.max(1,Math.floor(cur*0.08))):0;S.m=cur-l;if(l>0){msg("システム","荒らしのせいで"+l+"人が退出しました");toast("荒らしを放置…"+l+"人が退出した😢")}else toast("荒らしは飽きて帰っていった");ui();next()},6000);
+}
+function next(){setTimeout(spawn,20000+Math.random()*20000)}
+tr.addEventListener("click",()=>{clearTimeout(trT);tr.style.display="none";const b=Math.floor(pps()*15+50);S.p+=b;toast("荒らしを退場させた！ 💚+"+fmt(b));next()});
+
+/* ui */
+function ui(){
+  let ti=0;T.forEach((t,i)=>{if(S.m>=t[0])ti=i});
+  if(ti>S.tier){toast(T[ti][2]+" 「"+T[ti][1]+"」に成長！");msg("システム","グループが成長して、新しい話題が増えました")}
+  S.tier=ti;
+  $("#ico").textContent=T[ti][2];$("#name").textContent=T[ti][1];
+  $("#m").textContent=fmt(S.m);$("#p").textContent=fmt(S.p);
+  $("#pps").textContent=fmt(pps());$("#mps").textContent=mps().toFixed(1);
+  const n=T[ti+1];
+  if(n){$("#next").textContent="次の称号「"+n[1]+"」まで "+fmt(n[0]-S.m)+"人";$("#pg").style.width=Math.min(100,(S.m-T[ti][0])/(n[0]-T[ti][0])*100)+"%"}
+  else{$("#next").textContent="最高ランク到達！宇宙は広い。";$("#pg").style.width="100%"}
+  const set=(id,c,lv)=>{const b=$("#"+id);b.querySelector(".c").textContent="💚"+fmt(c)+(lv!=null?"  Lv"+lv:"");b.disabled=S.p<c};
+  set("inv",invC(),S.inv);set("tp",tapC(),S.tap);
+  IT.forEach((x,i)=>set("i"+i,cost(i),S.lv[i]));
+}
+
+/* loop */
+let last=Date.now();
+setInterval(()=>{const now=Date.now(),dt=Math.min((now-last)/1000,5);last=now;S.m+=mps()*dt;S.p+=pps()*dt;ui()},200);
+function chatTick(){
+  const ti=S.tier;let p=TX.slice(),n=NM.slice();
+  for(let i=1;i<=ti;i++){p=p.concat(POOL[i]);n=n.concat(NX[i])}
+  if(ti>0)p=p.concat(POOL[ti],POOL[ti]);
+  const nm=rnd(n);msg(nm+(NM.includes(nm)&&S.m>20?Math.floor(Math.random()*S.m):""),rnd(p));
+}
+setInterval(chatTick,1800);
+setInterval(()=>{S.at=Date.now();try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}},4000);
+$("#rs").addEventListener("click",()=>{if(confirm("最初からやり直しますか？")){try{localStorage.removeItem(KEY)}catch(e){}location.reload()}});
+
+/* offline gain */
+const off=Math.min((Date.now()-S.at)/1000,3600);
+if(off>30&&mps()>0){S.m+=mps()*off;S.p+=pps()*off;setTimeout(()=>toast("おかえり！留守中に "+fmt(mps()*off)+"人 増えたよ"),400)}
+msg("システム","グループを作成しました。まずはスタンプを送ろう！");
+ui();next();
+</script>
+</body>
+</html>
